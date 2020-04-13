@@ -14,13 +14,3 @@
 <div align="center">
   <img src="https://github.com/rubyruins/characterwise-user-sentiment/blob/master/screenshots/1.PNG" width="900"> &nbsp;
 </div>
-
-<h2>Sentiment analysis by specific family.</h2>
-<div align="center">
-  <img src="https://github.com/rubyruins/characterwise-user-sentiment/blob/master/screenshots/2.PNG" width="900"> &nbsp;
-</div>
-
-<h2>Sentiment analysis by number of mentions.</h2>
-<div align="center">
-  <img src="https://github.com/rubyruins/characterwise-user-sentiment/blob/master/screenshots/3.PNG" width="900"> &nbsp;
-</div>
