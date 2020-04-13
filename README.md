@@ -4,6 +4,12 @@
 - I cleaned and preprocessed the data using regex and did sentiment analysis using the vader lexicon from nltk. 
 - Finally, I plotted the results using matplotlib to visualise positive, neutral and negative emotions towards each of the different characters by number and percentage of mentions.
 
+**This repo has four notebooks:**
+- scrapy: to scrape and store data from 104 chapters into csv using selenium
+- preprocess: to clean the data
+- sentiment: to use nltk and assign sentiment scores to each comment
+- analyse: to plot and analyse graphs for different combinations of words
+
 <h2>Sentiment analysis by specific character.</h2>
 <div align="center">
   <img src="https://github.com/rubyruins/characterwise-user-sentiment/blob/master/screenshots/1.PNG" width="900"> &nbsp;
