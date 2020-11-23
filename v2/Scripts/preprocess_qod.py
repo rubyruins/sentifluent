@@ -38,8 +38,12 @@ for line in open("..\Data\commentdata_qod.csv", mode='r', encoding='utf-8'):
 				comment = fields[3:]
 	except: 
 		pass
-	date = date.split()
-	date = f"{date[2]}-{months.index(date[0])}-{date[1]}"
+	try:
+		date = date.replace('-', ' ')
+		date = date.split()
+		date = f"{date[2]}-{str(months.index(date[0])).zfill(2)}-{str(date[1]).zfill(2)}"
+	except:
+		date = f"{date[1][2:]}-{str(months.index(date[0])).zfill(2)}-{str(date[1][:2]).zfill(2)}"
 	comment = " ".join(comment)
 	comment = ftfy.fix_text(comment)
 	comment = emoji.demojize(comment)

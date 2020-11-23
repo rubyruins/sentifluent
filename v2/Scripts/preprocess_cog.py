@@ -43,9 +43,9 @@ for line in open("..\Data\commentdata_cog.csv", mode='r', encoding='utf-8'):
 	try:
 		date = date.replace('-', ' ')
 		date = date.split()
-		date = f"{date[2]}-{months.index(date[0])}-{date[1]}"
+		date = f"{date[2]}-{str(months.index(date[0])).zfill(2)}-{str(date[1]).zfill(2)}"
 	except:
-		date = f"{date[1][2:]}-{months.index(date[0])}-{date[1][:2]}"
+		date = f"{date[1][2:]}-{str(months.index(date[0])).zfill(2)}-{str(date[1][:2]).zfill(2)}"
 	comment = " ".join(comment)
 	comment = ftfy.fix_text(comment)
 	comment = emoji.demojize(comment)
