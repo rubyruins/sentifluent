@@ -9,8 +9,8 @@ from nltk.sentiment.vader import SentimentIntensityAnalyzer
 nltk.download('vader_lexicon')
 
 df1 = pd.DataFrame(columns = ['Chapter Name', 'Username', 'Date', 'Text', 'Negative', 'Neutral', 'Positive', 'Compound'])
-
 sid = SentimentIntensityAnalyzer()
+months = ['', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
 
 for line in open("..\Data\commentdata_qod.csv", mode='r', encoding='utf-8'):
 	fields = line.split(",")
@@ -31,13 +31,15 @@ for line in open("..\Data\commentdata_qod.csv", mode='r', encoding='utf-8'):
 					dt = datetime.timedelta(**time_dict)
 					past_time = datetime.datetime.now() - dt
 					past_time = str(past_time).split()[0].split('-')
-					date = f"{['', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][int(past_time[1])]} {past_time[2]} 2020"
+					date = f"{months[int(past_time[1])]} {past_time[2]} 2020"
 				comment = fields[3:]
 			else:
 				date = fields[2] + " 2020"
 				comment = fields[3:]
 	except: 
 		pass
+	date = date.split()
+	date = f"{date[2]}-{months.index(date[0])}-{date[1]}"
 	comment = " ".join(comment)
 	comment = ftfy.fix_text(comment)
 	comment = emoji.demojize(comment)

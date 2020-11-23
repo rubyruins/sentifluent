@@ -8,8 +8,8 @@ from nltk.sentiment.vader import SentimentIntensityAnalyzer
 nltk.download('vader_lexicon')
 
 df1 = pd.DataFrame(columns = ['Chapter Name', 'Username', 'Date', 'Text', 'Negative', 'Neutral', 'Positive', 'Compound'])
-
 sid = SentimentIntensityAnalyzer()
+months = ['', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
 
 for line in open("..\Data\commentdata_cog.csv", mode='r', encoding='utf-8'):
 	fields = line.split(",")
@@ -33,13 +33,19 @@ for line in open("..\Data\commentdata_cog.csv", mode='r', encoding='utf-8'):
 					dt = datetime.timedelta(**time_dict)
 					past_time = datetime.datetime.now() - dt
 					past_time = str(past_time).split()[0].split('-')
-					date = f"{['', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][int(past_time[1])]} {past_time[2]} 2020"
+					date = f"{months[int(past_time[1])]} {past_time[2]} 2020"
 				comment = fields[3:]
 			else:
 				date = fields[2] + " 2020"
 				comment = fields[3:]
 	except: 
 		pass
+	try:
+		date = date.replace('-', ' ')
+		date = date.split()
+		date = f"{date[2]}-{months.index(date[0])}-{date[1]}"
+	except:
+		date = f"{date[1][2:]}-{months.index(date[0])}-{date[1][:2]}"
 	comment = " ".join(comment)
 	comment = ftfy.fix_text(comment)
 	comment = emoji.demojize(comment)
@@ -49,10 +55,6 @@ for line in open("..\Data\commentdata_cog.csv", mode='r', encoding='utf-8'):
 	comment = comment.replace(",", '')
 	comment = comment.replace('\n', ' ')
 	print(line)
-	print(chaptername)
-	print(username)
-	print(comment)
-	print()
 	sentiments = dict(sid.polarity_scores(comment))
 	row = pd.Series(list([chaptername, username, date, comment, sentiments['neg'], sentiments['neu'], sentiments['pos'], sentiments['compound']]), index=df1.columns)
 	df1 = df1.append(row, ignore_index=True)   
@@ -60,40 +62,40 @@ for line in open("..\Data\commentdata_cog.csv", mode='r', encoding='utf-8'):
 df2 = pd.DataFrame(columns = ['Comments', 'Scraped Comments', 'Reads', 'Votes', 'Chapter Name', 'Chapter', 'Part'])
 
 def K_to_int(s):
-    if 'K' in s:
-        return int(float(s.replace('K', '')) * 1000)
-    else: 
-        return int(s)
+	if 'K' in s:
+		return int(float(s.replace('K', '')) * 1000)
+	else: 
+		return int(s)
 
 def roman_to_int(s):
-    if 'V' not in s:
-        return s.count('I')
-    else:
-        if s == 'IV':
-            return 4
-        else:
-            return (5 * s.count('V')) + (1 * s.count('I'))
+	if 'V' not in s:
+		return s.count('I')
+	else:
+		if s == 'IV':
+			return 4
+		else:
+			return (5 * s.count('V')) + (1 * s.count('I'))
 
 for line in open("..\Data\chapterdata_cog.csv", mode='r'):
-    fields = line.strip().split(',')
-    total_comments = K_to_int(fields[0])
-    scraped_comments = K_to_int(fields[1])
-    total_reads = K_to_int(fields[2])
-    total_votes = K_to_int(fields[3])
-    if 'SCENE' in fields[5]:
-        chapter_name = fields[4] + fields[5]
-        chapter = fields[4].split('|')[0].strip()
-        part = fields[4].split('|')[1].split()[1]
-        part = roman_to_int(part)
-    else:
-        chapter_name = fields[4]
-        chapter = fields[4]
-        if 'ACT ' in fields[4]:
-            part = fields[4].split('|')[0].split()[1]
-            part = roman_to_int(part)
-        else:
-            part = 'NA'
-    row = pd.Series(list([total_comments, scraped_comments, total_reads, total_votes, chapter_name, chapter, part]), index=df2.columns)
-    df2 = df2.append(row, ignore_index=True)   
+	fields = line.strip().split(',')
+	total_comments = K_to_int(fields[0])
+	scraped_comments = K_to_int(fields[1])
+	total_reads = K_to_int(fields[2])
+	total_votes = K_to_int(fields[3])
+	if 'SCENE' in fields[5]:
+		chapter_name = fields[4] + fields[5]
+		chapter = fields[4].split('|')[0].strip()
+		part = fields[4].split('|')[1].split()[1]
+		part = roman_to_int(part)
+	else:
+		chapter_name = fields[4]
+		chapter = fields[4]
+		if 'ACT ' in fields[4]:
+			part = fields[4].split('|')[0].split()[1]
+			part = roman_to_int(part)
+		else:
+			part = 'NA'
+	row = pd.Series(list([total_comments, scraped_comments, total_reads, total_votes, chapter_name, chapter, part]), index=df2.columns)
+	df2 = df2.append(row, ignore_index=True) 
 
 cog = df2.merge(df1, on='Chapter Name').to_csv("..\Data\cog.csv")

@@ -1,2 +1,4 @@
 venv
 .vscode
+.ipynb_checkpoints
+temp.ipynb
