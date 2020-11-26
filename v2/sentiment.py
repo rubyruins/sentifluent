@@ -9,15 +9,14 @@ story = st.sidebar.selectbox('Story', ['Crown of Glass', 'Queen of Death'])
 
 @st.cache(persist = True)
 def load_data():
-	cog = pd.read_csv("Data/cog.csv", keep_default_na = False)
-	qod = pd.read_csv("Data/qod.csv", keep_default_na = False)
+	cog = pd.read_csv("Data/cog.csv")
+	qod = pd.read_csv("Data/qod.csv")
 	cog.pop('Unnamed: 0')
 	qod.pop('Unnamed: 0')
 	return cog, qod
 
 cog, qod = load_data()
 
-# story = 'Queen of Death'
 if story == 'Crown of Glass':
 	data = cog
 else: 
@@ -34,9 +33,9 @@ st.write(f"Each of the chapters has an average of around {round(sum(a) / len(a))
 st.subheader("Stats over all parts.")
 option = st.radio("Type", ['Comments', 'Reads', 'Votes'], key = 2)
 temp = data[['Comments', 'Reads', 'Votes', 'Part']].drop_duplicates().groupby(by=["Part"])[option].sum().reset_index()
-st.plotly_chart(px.pie(temp, names = 'Part', values = option).update_layout(width=350, height=350))
-a, b = list(temp[option].index), list(temp[option].values)
-st.write(f"Part {a[(b).index(max(b))]} of {story} seems to be the most popular with a total of over {max(b)} {option.lower()}.")
+st.plotly_chart(px.pie(temp, names = 'Part', values = option).update_layout(width=400, height=400))
+# a, b = list(temp[option].index), list(temp[option].values)
+# st.write(f"Part {a[(b).index(max(b))]} of {story} seems to be the most popular with a total of over {max(b)} {option.lower()}.")
 
 st.subheader("Comments over all time.")
 temp = dict()
@@ -74,3 +73,25 @@ st.plotly_chart(px.line(temp, x = 'Date', y = 'Comments').update_layout(
 ))
 temp = temp[temp['Comments']==temp['Comments'].max()]
 st.write(f"{story} reached max popularity on {temp.Date.values[0]} with {temp.Comments.values[0]} comments on a single day!")
+
+st.subheader("General sentiment over all chapters.")
+option = st.radio("Type", ['All', 'Positive', 'Neutral', 'Negative'], key = 3)
+temp = data[['Chapter Name', 'Positive', 'Neutral', 'Negative', 'Compound']]
+pos = temp[(temp.Compound > 0) & (temp.Positive > 0)].groupby('Chapter Name').count().reindex(data['Chapter Name'].unique()).reset_index().fillna(0).Positive
+neu = temp[(temp.Compound == 0) & (temp.Positive == 0) & (temp.Negative == 0)].groupby('Chapter Name').count().reindex(data['Chapter Name'].unique()).reset_index().fillna(0).Negative
+neg = temp[(temp.Compound < 0) & (temp.Negative > 0)].groupby('Chapter Name').count().reindex(data['Chapter Name'].unique()).reset_index().fillna(0).Neutral
+temp = pd.DataFrame(columns = ['Positive', 'Neutral', 'Negative', 'Chapter Name'])
+temp['Chapter Name'] = data['Chapter Name'].unique()
+temp['Positive'] = pos
+temp['Negative'] = neg
+temp['Neutral'] = neu
+# temp = data[['Chapter Name', 'Compound']]
+# pos = temp[temp.Compound >= pos_thresh].groupby(by = 'Chapter Name').agg('count')
+# neu = temp[(temp.Compound < pos_thresh) & (temp.Compound > neg_thresh)].groupby(by = 'Chapter Name').agg('count')
+# neg = temp[temp.Compound <= neg_thresh].groupby(by = 'Chapter Name').agg('count')
+# sentiment_counts = pos.merge(neg, on = 'Chapter Name', how='left').merge(neu, on = 'Chapter Name', how='left').rename(columns={'Compound_x':'Positive', 'Compound_y':'Negative','Compound':'Neutral'}).reindex(data['Chapter Name'].unique()).reset_index().fillna(0)
+if option == 'All':
+	st.plotly_chart(px.bar(temp, x = 'Chapter Name', y = ['Positive', 'Negative', 'Neutral']))
+else:
+	c = ['', '#636EFA', '#00CC96', '#EF553B'][['', 'Positive', 'Neutral', 'Negative'].index(option)]
+	st.plotly_chart(px.bar(temp, x = 'Chapter Name', y = option).update_traces(marker_color=c))
