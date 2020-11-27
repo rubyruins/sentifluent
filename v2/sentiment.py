@@ -15,12 +15,45 @@ def load_data():
 	qod.pop('Unnamed: 0')
 	return cog, qod
 
+def sentiments_to_chapter(df):
+	pos = df[(df.Compound > 0)].groupby('Chapter Name').count().reindex(data['Chapter Name'].unique()).reset_index().fillna(0).Positive
+	neu = df[(df.Compound == 0)].groupby('Chapter Name').count().reindex(data['Chapter Name'].unique()).reset_index().fillna(0).Neutral
+	neg = df[(df.Compound < 0)].groupby('Chapter Name').count().reindex(data['Chapter Name'].unique()).reset_index().fillna(0).Negative
+	df = pd.DataFrame(columns = ['Positive', 'Neutral', 'Negative', 'Chapter Name'])
+	df['Chapter Name'] = data['Chapter Name'].unique()
+	df['Positive'] = pos
+	df['Negative'] = neg
+	df['Neutral'] = neu
+	return df
+
+def sentiments_to_time(df, choice):
+	mydict = dict()
+	df = df.reset_index()
+	if choice == 'Positive':
+		for i in range(len(df)):
+			if df.loc[i, 'Compound'] > 0:
+				mydict[df.loc[i, 'Date']] = mydict.get(df.loc[i, 'Date'], 0) + 1
+		mydict = pd.DataFrame(list(mydict.items()),columns = ['Date','Positive Comments']).sort_values(by = 'Date')
+	if choice == 'Neutral':
+		for i in range(len(df)):
+			if df.loc[i, 'Compound'] == 0:
+				mydict[df.loc[i, 'Date']] = mydict.get(df.loc[i, 'Date'], 0) + 1
+		mydict = pd.DataFrame(list(mydict.items()),columns = ['Date','Neutral Comments']).sort_values(by = 'Date')
+	if choice == 'Negative':
+		for i in range(len(df)):
+			if df.loc[i, 'Compound'] < 0:
+				mydict[df.loc[i, 'Date']] = mydict.get(df.loc[i, 'Date'], 0) + 1
+		mydict = pd.DataFrame(list(mydict.items()),columns = ['Date','Negative Comments']).sort_values(by = 'Date')
+	return mydict
+
 cog, qod = load_data()
 
 if story == 'Crown of Glass':
 	data = cog
+	names = ['Edwina', 'Tristan', 'Eric', 'Amphitrite', 'Drusilla', 'Aidon', 'Celestina', 'Deimos', 'Cosmo', 'Emerick', 'Justaline', 'Thanatos', 'Ambrosine', 'Apollo', 'Titania', 'Favian', 'Vanessa', 'Llewellyn', 'Pandora', 'Zadicus', 'Helios', 'Nyx', 'Atherton', 'Cymbeline', 'Eros', 'Erida', 'Vivian', 'Rosalva', 'Lunette', 'Alaric', 'Aeneas']
 else: 
 	data = qod
+	names = ['Persephone', 'Hades', 'Demeter', 'Zeus', 'Hecate', 'Athena', 'Artemis', 'Thanatos', 'Poseidon', 'Charon', 'Cerebrus']
 
 st.subheader("Stats over all chapters.")
 option = st.radio("Type", ['Comments', 'Reads', 'Votes'], key = 1)
@@ -76,14 +109,7 @@ st.write(f"{story} reached max popularity on {temp.Date.values[0]} with {temp.Co
 st.subheader("General sentiment over all chapters.")
 option = st.radio("Type", ['All', 'Positive', 'Neutral', 'Negative'], key = 3)
 temp = data[['Chapter Name', 'Positive', 'Neutral', 'Negative', 'Compound']]
-pos = temp[(temp.Compound > 0)].groupby('Chapter Name').count().reindex(data['Chapter Name'].unique()).reset_index().fillna(0).Positive
-neu = temp[(temp.Compound == 0)].groupby('Chapter Name').count().reindex(data['Chapter Name'].unique()).reset_index().fillna(0).Negative
-neg = temp[(temp.Compound < 0)].groupby('Chapter Name').count().reindex(data['Chapter Name'].unique()).reset_index().fillna(0).Neutral
-temp = pd.DataFrame(columns = ['Positive', 'Neutral', 'Negative', 'Chapter Name'])
-temp['Chapter Name'] = data['Chapter Name'].unique()
-temp['Positive'] = pos
-temp['Negative'] = neg
-temp['Neutral'] = neu
+temp = sentiments_to_chapter(temp)
 if option == 'All':
 	st.plotly_chart(px.line(temp, x = 'Chapter Name', y = ['Positive', 'Negative', 'Neutral']))
 else:
@@ -92,21 +118,28 @@ else:
 
 st.subheader("General sentiment over all time.")
 option = st.radio("Type", ['Positive', 'Neutral', 'Negative'], key = 4)
-temp = dict()
-if option == 'Positive':
-	for i in range(len(data)):
-		if data.loc[i, 'Compound'] > 0:
-			temp[data.loc[i, 'Date']] = temp.get(data.loc[i, 'Date'], 0) + 1
-	temp = pd.DataFrame(list(temp.items()),columns = ['Date','Positive Comments']).sort_values(by = 'Date')
-if option == 'Neutral':
-	for i in range(len(data)):
-		if data.loc[i, 'Compound'] == 0:
-			temp[data.loc[i, 'Date']] = temp.get(data.loc[i, 'Date'], 0) + 1
-	temp = pd.DataFrame(list(temp.items()),columns = ['Date','Neutral Comments']).sort_values(by = 'Date')
-if option == 'Negative':
-	for i in range(len(data)):
-		if data.loc[i, 'Compound'] < 0:
-			temp[data.loc[i, 'Date']] = temp.get(data.loc[i, 'Date'], 0) + 1
-	temp = pd.DataFrame(list(temp.items()),columns = ['Date','Negative Comments']).sort_values(by = 'Date')
+temp = sentiments_to_time(data, option)
 c = ['', '#636EFA', '#00CC96', '#EF553B'][['All', 'Positive', 'Neutral', 'Negative'].index(option)]
 st.plotly_chart(px.histogram(temp, x = 'Date', y = f'{option} Comments', histfunc='sum').update_traces(xbins_size="M1", marker_color=c).update_layout(bargap=0.35))
+
+st.header("Let's see how the readers feel about particular characters.")
+st.subheader("Get started by naming a character from the story. ")
+st.markdown("💡 Pro tip: Check out the sidebar for a full list of awesome characters appearing in the story!")
+person = st.selectbox('Select', names)
+option = st.radio("Type", ['Positive', 'Neutral', 'Negative'], key = 5)
+
+temp = data[data['Text'].str.contains(person.lower())]
+temp = sentiments_to_chapter(temp)
+c = ['', '#636EFA', '#00CC96', '#EF553B'][['All', 'Positive', 'Neutral', 'Negative'].index(option)]
+st.plotly_chart(px.line(temp, x = 'Chapter Name', y = option).update_traces(line_color=c))
+temp = temp.sum(axis = 0).reset_index()[:3]
+temp.rename(columns ={'index': 'Sentiment', 0: 'Comments'}, inplace = True)
+n = list(temp.Sentiment.values)
+v = list(temp.Comments.values)
+c = ['#636EFA', '#00CC96','#EF553B']
+v, n, c = [list(i) for i in zip(*sorted(zip(v, n, c)))]
+v.reverse()
+n.reverse()
+c.reverse()
+st.plotly_chart(px.pie(values = v, names = n, color_discrete_sequence = c))
+st.write(f"Most reader sentiment towards {person} is {n[v.index(max(v))].lower()}.")

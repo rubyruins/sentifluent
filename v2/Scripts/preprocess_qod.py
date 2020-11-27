@@ -8,7 +8,7 @@ import nltk
 from nltk.sentiment.vader import SentimentIntensityAnalyzer
 nltk.download('vader_lexicon')
 
-df1 = pd.DataFrame(columns = ['Chapter Name', 'Username', 'Date', 'Text', 'Negative', 'Neutral', 'Positive', 'Compound'])
+df1 = pd.DataFrame(columns = ['Chapter Name', 'Username', 'Date', 'Original', 'Text', 'Negative', 'Neutral', 'Positive', 'Compound'])
 sid = SentimentIntensityAnalyzer()
 months = ['', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
 
@@ -45,6 +45,7 @@ for line in open("..\Data\commentdata_qod.csv", mode='r', encoding='utf-8'):
 	except:
 		date = f"{date[1][2:]}-{str(months.index(date[0])).zfill(2)}-{str(date[1][:2]).zfill(2)}"
 	comment = " ".join(comment)
+	original = comment
 	comment = ftfy.fix_text(comment)
 	comment = emoji.demojize(comment)
 	comment = re.sub("[:,_]", " ", comment)
@@ -53,7 +54,8 @@ for line in open("..\Data\commentdata_qod.csv", mode='r', encoding='utf-8'):
 	comment = comment.replace(",", '')
 	comment = comment.replace('\n', ' ')
 	sentiments = dict(sid.polarity_scores(comment))
-	row = pd.Series(list([chaptername, username, date, comment, sentiments['neg'], sentiments['neu'], sentiments['pos'], sentiments['compound']]), index = df1.columns)
+	comment = comment.lower()
+	row = pd.Series(list([chaptername, username, date, original, comment, sentiments['neg'], sentiments['neu'], sentiments['pos'], sentiments['compound']]), index = df1.columns)
 	df1 = df1.append(row, ignore_index = True)   
 
 df2 = pd.DataFrame(columns = ['Comments', 'Scraped Comments', 'Reads', 'Votes', 'Chapter Name', 'Chapter', 'Part'])
