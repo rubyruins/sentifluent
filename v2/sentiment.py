@@ -72,7 +72,7 @@ load_random(data)
 st.subheader("Stats over all chapters.")
 option = st.radio("Type", ['Comments', 'Reads', 'Votes'], key = 1)
 temp = data[['Comments', 'Reads', 'Votes', 'Chapter Name']].drop_duplicates()
-st.plotly_chart(px.line(temp, x = 'Chapter Name', y = option))
+st.plotly_chart(px.line(temp, x = 'Chapter Name', y = option).update_xaxes(showticklabels=False))
 a, b = list(temp[option]), list(temp['Chapter Name'])
 option = option.lower()
 st.write(f"Each of the chapters has an average of around {round(sum(a) / len(a))} {option}! {b[a.index(max(a))]} performed the best with around {max(a)} {option}, while {b[a.index(min(a))]} achieved only {min(a)} {option}.")
@@ -89,7 +89,7 @@ temp = dict()
 for i in data.Date:
 	temp[i] = temp.get(i, 0) + 1
 temp = pd.DataFrame(list(temp.items()),columns = ['Date','Comments']).sort_values(by = 'Date')
-st.plotly_chart(px.histogram(temp, x = 'Date', y = 'Comments', histfunc='sum').update_traces(xbins_size="M1").update_layout(bargap=0.35,
+st.plotly_chart(px.histogram(temp, x = 'Date', y = 'Comments', histfunc='sum').update_traces(xbins_size="M1").update_layout(bargap=0.35, yaxis_title=f"Total comments",
 	xaxis=dict(
 		rangeselector=dict(
 			buttons=list([
@@ -125,20 +125,20 @@ option = st.radio("Type", ['All', 'Positive', 'Neutral', 'Negative'], key = 3)
 temp = data[['Chapter Name', 'Positive', 'Neutral', 'Negative', 'Compound']]
 temp = sentiments_to_chapter(temp)
 if option == 'All':
-	st.plotly_chart(px.line(temp, x = 'Chapter Name', y = ['Positive', 'Negative', 'Neutral']))
+	st.plotly_chart(px.line(temp, x = 'Chapter Name', y = ['Positive', 'Negative', 'Neutral']).update_xaxes(showticklabels=False).update_layout(yaxis_title=f"Total comments"))
 else:
 	c = ['', '#636EFA', '#00CC96', '#EF553B'][['All', 'Positive', 'Neutral', 'Negative'].index(option)]
-	st.plotly_chart(px.line(temp, x = 'Chapter Name', y = option).update_traces(line_color=c))
+	st.plotly_chart(px.line(temp, x = 'Chapter Name', y = option).update_traces(line_color=c).update_xaxes(showticklabels=False).update_layout(yaxis_title=f"Total {option.lower()} comments"))
 
 st.subheader("General sentiment over all time.")
 option = st.radio("Type", ['Positive', 'Neutral', 'Negative'], key = 4)
 temp = sentiments_to_time(data, option)
 c = ['', '#636EFA', '#00CC96', '#EF553B'][['All', 'Positive', 'Neutral', 'Negative'].index(option)]
-st.plotly_chart(px.histogram(temp, x = 'Date', y = f'{option} Comments', histfunc='sum').update_traces(xbins_size="M1", marker_color=c).update_layout(bargap=0.35))
+st.plotly_chart(px.histogram(temp, x = 'Date', y = f'{option} Comments', histfunc='sum').update_traces(xbins_size="M1", marker_color=c).update_layout(bargap=0.35, yaxis_title=f"Total {option.lower()} comments"))
 
 st.header("Let's see how the readers feel about particular characters.")
 st.subheader("Get started by naming a character from the story. ")
-st.markdown("💡 Pro tip: Check out the sidebar for a full list of awesome characters appearing in the story!")
+st.markdown("💡 Pro tip: Check out the actual story to know why people love / hate these characters so much!")
 person = st.selectbox('Select', names)
 # option = st.radio("Type", ['Positive', 'Neutral', 'Negative'], key = 5)
 
@@ -151,9 +151,8 @@ temp.rename(columns ={'index': 'Sentiment', 0: 'Comments'}, inplace = True)
 n = list(temp.Sentiment.values)
 v = list(temp.Comments.values)
 c = ['#636EFA', '#00CC96','#EF553B']
-v, n, c = [list(i) for i in zip(*sorted(zip(v, n, c)))]
-v.reverse()
-n.reverse()
-c.reverse()
-st.plotly_chart(px.pie(values = v, names = n, color_discrete_sequence = c, hole=0.5).update_layout(width=400, height=350))
-st.write(f"Most reader sentiment towards {person} is {n[v.index(max(v))].lower()}.")
+v, n, c = [list(i) for i in zip(*sorted(zip(v, n, c), reverse=True))]
+# v.reverse()
+# n.reverse()
+# c.reverse()
+st.plotly_chart(px.pie(values = v, names = n, color_discrete_sequence = c, hole=0.5, title=f"Most reader sentiment towards {person} is {n[v.index(max(v))].lower()}.").update_layout(width=600, height=400))
