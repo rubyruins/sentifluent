@@ -62,12 +62,63 @@ cog, qod = load_data()
 
 if story == 'Crown of Glass':
 	data = cog
-	names = ['Edwina', 'Tristan', 'Eric', 'Amphitrite', 'Drusilla', 'Aidon', 'Celestina', 'Deimos', 'Cosmo', 'Emerick', 'Thanatos', 'Ambrosine', 'Apollo', 'Titania', 'Favian', 'Helios', 'Eros', 'Vivian', 'Miriel', 'Elodie', 'Lucius']
+	names = ['Edwina', 'Amphitrite', 'Eric', 'Tristan', 'Drusilla', 'Aidon', 'Celestina', 'Deimos', 'Cosmo', 'Emerick', 'Thanatos', 'Ambrosine', 'Apollo', 'Titania', 'Favian', 'Vivian', 'Lucius', 'Eros', 'Elodie', 'Miriel', 'Helios']
+	defaults = ['Edwina', 'Vivian', 'Emerick', 'Amphitrite', 'Cosmo', 'Tristan']
 else: 
 	data = qod
 	names = ['Persephone', 'Hades', 'Demeter', 'Zeus', 'Hecate', 'Athena', 'Artemis', 'Thanatos', 'Poseidon', 'Charon', 'Cerberus']
+	defaults = ['Persephone', 'Hades', 'Demeter', 'Zeus', 'Hecate', 'Artemis']
 
 load_random(data)
+
+st.header("Let's see how the readers feel about particular characters.")
+st.subheader("Get started by picking a character from the story. ")
+st.markdown("💡 Pro tip: Check out the story to know why people love / hate these characters so much!")
+person = st.selectbox('Select', names)
+
+temp = data[data['Text'].str.contains(person.lower())]
+temp = sentiments_to_chapter(temp)
+temp = temp.sum(axis = 0).reset_index()[:3]
+temp.rename(columns ={'index': 'Sentiment', 0: 'Comments'}, inplace = True)
+n = list(temp.Sentiment.values)
+v = list(temp.Comments.values)
+c = ['#636EFA', '#00CC96','#EF553B']
+v, n, c = [list(i) for i in zip(*sorted(zip(v, n, c), reverse=True))]
+st.plotly_chart(px.pie(values = v, names = n, color_discrete_sequence = c, hole=0.5, title=f"Most reader sentiment towards {person} is {n[v.index(max(v))].lower()}.").update_layout(width=600, height=400))
+
+st.subheader("Compare a few of these characters together... ")
+people = st.multiselect('Select', names, default = defaults)
+temp = pd.DataFrame(columns = ['Character', 'Positive', 'Neutral', 'Negative'])
+for person in people:
+	t = data[data['Text'].str.contains(person.lower())]
+	t = sentiments_to_chapter(t)
+	t = t.sum(axis = 0)
+	row = pd.Series(list([person, t.Positive, t.Neutral, t.Negative]), index=temp.columns)
+	temp = temp.append(row, ignore_index=True) 
+temp[['Positive', 'Neutral', 'Negative']] = temp[['Positive', 'Neutral', 'Negative']].div(temp[['Positive', 'Neutral', 'Negative']].sum(axis=1), axis=0) * 100
+temp[['Positive', 'Neutral', 'Negative']] = round(temp[['Positive', 'Neutral', 'Negative']], 2).astype(str) + '%' 
+temp = pd.melt(temp, id_vars=['Character'], value_vars=['Positive', 'Negative', 'Neutral'])
+temp.rename(columns ={'variable': 'Sentiment', 'value': '% Comments'}, inplace = True)
+st.plotly_chart(px.bar(temp, x = 'Character', y = '% Comments', color='Sentiment', barmode='group'))
+neg_ind = temp[temp.Sentiment == 'Negative']['% Comments'].str[:-1].astype('float').idxmax(axis = 1)
+pos_ind = temp[temp.Sentiment == 'Positive']['% Comments'].str[:-1].astype('float').idxmax(axis = 1)
+st.write(f"Phew! Most readers really dislike {temp.iloc[neg_ind]['Character']}, who has nearly {temp.iloc[neg_ind]['% Comments']} negative comments. {temp.iloc[pos_ind]['Character']} seems to be the most popular character, with {temp.iloc[pos_ind]['% Comments']} positive comments.")
+
+st.subheader("General sentiment over all chapters.")
+option = st.radio("Type", ['All', 'Positive', 'Neutral', 'Negative'], key = 3)
+temp = data[['Chapter Name', 'Positive', 'Neutral', 'Negative', 'Compound']]
+temp = sentiments_to_chapter(temp)
+if option == 'All':
+	st.plotly_chart(px.line(temp, x = 'Chapter Name', y = ['Positive', 'Negative', 'Neutral']).update_xaxes(showticklabels=False).update_layout(yaxis_title=f"Total comments"))
+else:
+	c = ['', '#636EFA', '#00CC96', '#EF553B'][['All', 'Positive', 'Neutral', 'Negative'].index(option)]
+	st.plotly_chart(px.line(temp, x = 'Chapter Name', y = option).update_traces(line_color=c).update_xaxes(showticklabels=False).update_layout(yaxis_title=f"Total {option.lower()} comments"))
+
+st.subheader("General sentiment over all time.")
+option = st.radio("Type", ['Positive', 'Neutral', 'Negative'], key = 4)
+temp = sentiments_to_time(data, option)
+c = ['', '#636EFA', '#00CC96', '#EF553B'][['All', 'Positive', 'Neutral', 'Negative'].index(option)]
+st.plotly_chart(px.histogram(temp, x = 'Date', y = f'{option} Comments', histfunc='sum').update_traces(xbins_size="M1", marker_color=c).update_layout(bargap=0.35, yaxis_title=f"Total {option.lower()} comments"))
 
 st.subheader("Stats over all chapters.")
 option = st.radio("Type", ['Comments', 'Reads', 'Votes'], key = 1)
@@ -119,40 +170,3 @@ st.plotly_chart(px.histogram(temp, x = 'Date', y = 'Comments', histfunc='sum').u
 	)))
 temp = temp[temp['Comments']==temp['Comments'].max()]
 st.write(f"{story} reached max popularity on {temp.Date.values[0]} with {temp.Comments.values[0]} comments on a single day!")
-
-st.subheader("General sentiment over all chapters.")
-option = st.radio("Type", ['All', 'Positive', 'Neutral', 'Negative'], key = 3)
-temp = data[['Chapter Name', 'Positive', 'Neutral', 'Negative', 'Compound']]
-temp = sentiments_to_chapter(temp)
-if option == 'All':
-	st.plotly_chart(px.line(temp, x = 'Chapter Name', y = ['Positive', 'Negative', 'Neutral']).update_xaxes(showticklabels=False).update_layout(yaxis_title=f"Total comments"))
-else:
-	c = ['', '#636EFA', '#00CC96', '#EF553B'][['All', 'Positive', 'Neutral', 'Negative'].index(option)]
-	st.plotly_chart(px.line(temp, x = 'Chapter Name', y = option).update_traces(line_color=c).update_xaxes(showticklabels=False).update_layout(yaxis_title=f"Total {option.lower()} comments"))
-
-st.subheader("General sentiment over all time.")
-option = st.radio("Type", ['Positive', 'Neutral', 'Negative'], key = 4)
-temp = sentiments_to_time(data, option)
-c = ['', '#636EFA', '#00CC96', '#EF553B'][['All', 'Positive', 'Neutral', 'Negative'].index(option)]
-st.plotly_chart(px.histogram(temp, x = 'Date', y = f'{option} Comments', histfunc='sum').update_traces(xbins_size="M1", marker_color=c).update_layout(bargap=0.35, yaxis_title=f"Total {option.lower()} comments"))
-
-st.header("Let's see how the readers feel about particular characters.")
-st.subheader("Get started by naming a character from the story. ")
-st.markdown("💡 Pro tip: Check out the actual story to know why people love / hate these characters so much!")
-person = st.selectbox('Select', names)
-# option = st.radio("Type", ['Positive', 'Neutral', 'Negative'], key = 5)
-
-temp = data[data['Text'].str.contains(person.lower())]
-temp = sentiments_to_chapter(temp)
-# c = ['', '#636EFA', '#00CC96', '#EF553B'][['All', 'Positive', 'Neutral', 'Negative'].index(option)]
-# st.plotly_chart(px.line(temp, x = 'Chapter Name', y = option).update_traces(line_color=c))
-temp = temp.sum(axis = 0).reset_index()[:3]
-temp.rename(columns ={'index': 'Sentiment', 0: 'Comments'}, inplace = True)
-n = list(temp.Sentiment.values)
-v = list(temp.Comments.values)
-c = ['#636EFA', '#00CC96','#EF553B']
-v, n, c = [list(i) for i in zip(*sorted(zip(v, n, c), reverse=True))]
-# v.reverse()
-# n.reverse()
-# c.reverse()
-st.plotly_chart(px.pie(values = v, names = n, color_discrete_sequence = c, hole=0.5, title=f"Most reader sentiment towards {person} is {n[v.index(max(v))].lower()}.").update_layout(width=600, height=400))
