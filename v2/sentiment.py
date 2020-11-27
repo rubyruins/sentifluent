@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
 import plotly.express as px
+import random
 
 st.title('sentifluent.') 
 st.markdown('A dashboard for viewing story stats and character targeted sentiment analysis.')
@@ -46,14 +47,27 @@ def sentiments_to_time(df, choice):
 		mydict = pd.DataFrame(list(mydict.items()),columns = ['Date','Negative Comments']).sort_values(by = 'Date')
 	return mydict
 
+def load_random(df):
+	while True:
+		i = random.randint(0, len(data) - 1)
+		if 'This comment may be offensive.' in data.loc[i]['Original'] or len(data.loc[i]['Original']) < 100:
+			# st.write(data.loc[i]['Original'])
+			continue
+		else:
+			st.sidebar.markdown(f"**@{data.loc[i]['Username']}** commented on {data.loc[i]['Chapter Name']}:")
+			st.sidebar.markdown(f"{data.loc[i]['Original']}")
+			break
+
 cog, qod = load_data()
 
 if story == 'Crown of Glass':
 	data = cog
-	names = ['Edwina', 'Tristan', 'Eric', 'Amphitrite', 'Drusilla', 'Aidon', 'Celestina', 'Deimos', 'Cosmo', 'Emerick', 'Justaline', 'Thanatos', 'Ambrosine', 'Apollo', 'Titania', 'Favian', 'Vanessa', 'Llewellyn', 'Pandora', 'Zadicus', 'Helios', 'Nyx', 'Atherton', 'Cymbeline', 'Eros', 'Erida', 'Vivian', 'Rosalva', 'Lunette', 'Alaric', 'Aeneas']
+	names = ['Edwina', 'Tristan', 'Eric', 'Amphitrite', 'Drusilla', 'Aidon', 'Celestina', 'Deimos', 'Cosmo', 'Emerick', 'Thanatos', 'Ambrosine', 'Apollo', 'Titania', 'Favian', 'Helios', 'Eros', 'Vivian', 'Miriel', 'Elodie', 'Lucius']
 else: 
 	data = qod
-	names = ['Persephone', 'Hades', 'Demeter', 'Zeus', 'Hecate', 'Athena', 'Artemis', 'Thanatos', 'Poseidon', 'Charon', 'Cerebrus']
+	names = ['Persephone', 'Hades', 'Demeter', 'Zeus', 'Hecate', 'Athena', 'Artemis', 'Thanatos', 'Poseidon', 'Charon', 'Cerberus']
+
+load_random(data)
 
 st.subheader("Stats over all chapters.")
 option = st.radio("Type", ['Comments', 'Reads', 'Votes'], key = 1)
@@ -66,7 +80,7 @@ st.write(f"Each of the chapters has an average of around {round(sum(a) / len(a))
 st.subheader("Stats over all parts.")
 option = st.radio("Type", ['Comments', 'Reads', 'Votes'], key = 2)
 temp = data[['Comments', 'Reads', 'Votes', 'Part']].drop_duplicates().groupby(by=["Part"])[option].sum().reset_index()
-st.plotly_chart(px.pie(temp, names = 'Part', values = option).update_layout(width=400, height=400))
+st.plotly_chart(px.pie(temp, names = 'Part', values = option, hole=0.5).update_layout(width=400, height=400))
 # a, b = list(temp[option].index), list(temp[option].values)
 # st.write(f"Part {a[(b).index(max(b))]} of {story} seems to be the most popular with a total of over {max(b)} {option.lower()}.")
 
@@ -126,12 +140,12 @@ st.header("Let's see how the readers feel about particular characters.")
 st.subheader("Get started by naming a character from the story. ")
 st.markdown("💡 Pro tip: Check out the sidebar for a full list of awesome characters appearing in the story!")
 person = st.selectbox('Select', names)
-option = st.radio("Type", ['Positive', 'Neutral', 'Negative'], key = 5)
+# option = st.radio("Type", ['Positive', 'Neutral', 'Negative'], key = 5)
 
 temp = data[data['Text'].str.contains(person.lower())]
 temp = sentiments_to_chapter(temp)
-c = ['', '#636EFA', '#00CC96', '#EF553B'][['All', 'Positive', 'Neutral', 'Negative'].index(option)]
-st.plotly_chart(px.line(temp, x = 'Chapter Name', y = option).update_traces(line_color=c))
+# c = ['', '#636EFA', '#00CC96', '#EF553B'][['All', 'Positive', 'Neutral', 'Negative'].index(option)]
+# st.plotly_chart(px.line(temp, x = 'Chapter Name', y = option).update_traces(line_color=c))
 temp = temp.sum(axis = 0).reset_index()[:3]
 temp.rename(columns ={'index': 'Sentiment', 0: 'Comments'}, inplace = True)
 n = list(temp.Sentiment.values)
@@ -141,5 +155,5 @@ v, n, c = [list(i) for i in zip(*sorted(zip(v, n, c)))]
 v.reverse()
 n.reverse()
 c.reverse()
-st.plotly_chart(px.pie(values = v, names = n, color_discrete_sequence = c))
+st.plotly_chart(px.pie(values = v, names = n, color_discrete_sequence = c, hole=0.5).update_layout(width=400, height=350))
 st.write(f"Most reader sentiment towards {person} is {n[v.index(max(v))].lower()}.")
