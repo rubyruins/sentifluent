@@ -12,16 +12,25 @@ sentifluent 📉📊
 
 A dashboard for viewing character targeted sentiment analysis and story stats.
 
-It uses Selenium and BeautifulSoup for scraping comments + Pandas and NLTK for data preprocessing and sentiment analysis +  Streamlit and Plotly Express for the dashboard and visulization. You can find the deployed website [here!]('https://sentifluent.herokuapp.com/')
+It uses Selenium and BeautifulSoup for scraping comments + Pandas and NLTK for data preprocessing and sentiment analysis +  Streamlit and Plotly Express for the dashboard and visulization. You can find the deployed website [here!](https://sentifluent.herokuapp.com/) 
 
 ---
 
 ## Features:
 
-- The `scrape.py` files use Selenium and BeautifulSoup for scraping around 35k comments from over 100 chapters of my work on Wattpad, [here]('https://www.wattpad.com/user/rubyruins').
+- The `scrape.py` files use Selenium and BeautifulSoup for scraping around 35k comments from over 100 chapters of my work on Wattpad, [here](https://www.wattpad.com/user/rubyruins).
 - The `preprocess.py` files clean, preprocess and split the comments into sentiment scores using NLTK's VADER lexicon. VADER relies on a dictionary that maps lexical features to emotion intensities known as sentiment scores. 
 - Most computations are performed on the Compound sentiment score. The sentiment score of a text can be obtained by summing up the intensity of each word in the text.
 - The `sentiment.py` file creates the dashboard which visualises stats and inferences.
+
+---
+
+## Screenshots:
+
+<p float="left">
+  <img src="https://user-images.githubusercontent.com/50259869/100525910-07eccd80-31ea-11eb-8c5c-138c80920abf.png" width="400" />
+  <img src="https://user-images.githubusercontent.com/50259869/100525926-205ce800-31ea-11eb-8260-b72ba77cf053.png" width="400" /> 
+</p>
 
 ---
 
@@ -40,12 +49,6 @@ It uses Selenium and BeautifulSoup for scraping comments + Pandas and NLTK for d
 The live project is deployed on https://sentifluent.herokuapp.com/. 
 
 ---
-
-## Screenshot:
-
-![image](https://user-images.githubusercontent.com/50259869/100525910-07eccd80-31ea-11eb-8c5c-138c80920abf.png)
-![image](https://user-images.githubusercontent.com/50259869/100525926-205ce800-31ea-11eb-8260-b72ba77cf053.png)
-
 
 ## Local installation:
 
