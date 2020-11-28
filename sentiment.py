@@ -5,7 +5,6 @@ import random
 
 @st.cache(persist = True, suppress_st_warning = True)
 def load_data(my_story):
-	print("in load data")
 	if my_story == 'Crown of Glass' or not my_story:
 		my_data = pd.read_csv("Data/cog.csv")
 		my_names = ['Edwina', 'Amphitrite', 'Eric', 'Tristan', 'Drusilla', 'Aidon', 'Celestina', 'Deimos', 'Cosmo', 'Emerick', 'Thanatos', 'Ambrosine', 'Apollo', 'Titania', 'Favian', 'Vivian', 'Lucius', 'Eros', 'Elodie', 'Miriel', 'Helios']
