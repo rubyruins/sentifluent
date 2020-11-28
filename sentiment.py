@@ -4,8 +4,10 @@ import plotly.express as px
 import random
 
 st.title('sentifluent.') 
-st.markdown('A dashboard for viewing story stats and character targeted sentiment analysis.')
-st.sidebar.title('Select a story to get started.')
+st.subheader('A dashboard for viewing story stats and character targeted sentiment analysis.')
+st.markdown('Select a story from the sidebar to get started!')
+st.sidebar.markdown('[![Github Badge](https://img.shields.io/badge/-github-grey?style=for-the-badge&logo=github&logoColor=white&link=https://github.com/rubyruins/)](https://www.github.com/rubyruins/) [![Wattpad Badge](https://img.shields.io/badge/-wattpad-orange?style=for-the-badge&logo=wattpad&logoColor=white&link=https://www.wattpad.com/user/rubyruins)](https://www.wattpad.com/user/rubyruins)')
+st.sidebar.title('Pick a story.')
 story = st.sidebar.selectbox('Story', ['Crown of Glass', 'Queen of Death'])
 
 @st.cache(persist = True)
@@ -170,3 +172,7 @@ st.plotly_chart(px.histogram(temp, x = 'Date', y = 'Comments', histfunc='sum').u
 	)))
 temp = temp[temp['Comments']==temp['Comments'].max()]
 st.write(f"{story} reached max popularity on {temp.Date.values[0]} with {temp.Comments.values[0]} comments on a single day!")
+
+st.subheader("That's all for now!")
+st.markdown("**Thanks for making it all the way down here. 🎉**")
+st.markdown("As a featured writer on Wattpad, I've always wanted to do some sentiment analysis on what users thought of my stories. This pet project gave me the perfect opportunity to work with real data and visualise clear insights about characters from these tales! I've used Selenium and BeautifulSoup for scraping comments + Pandas and NLTK for data preprocessing and sentiment analysis +  Streamlit and Plotly Express for the dashboard and visulization. You can find the full code on Github [here]('https://www.github.com/rubyruins/'), or give my work on Wattpad a quick read [here!]('https://www.wattpad.com/user/rubyruins') 💖 ")
