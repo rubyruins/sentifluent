@@ -4,8 +4,7 @@ import plotly.express as px
 import random
 
 st.title('sentifluent.') 
-st.subheader('A dashboard for viewing story stats and character targeted sentiment analysis.')
-st.markdown('Select a story from the sidebar to get started!')
+st.markdown('A dashboard for viewing story stats and character targeted sentiment analysis.')
 st.sidebar.markdown('[![Github Badge](https://img.shields.io/badge/-github-grey?style=for-the-badge&logo=github&logoColor=white&link=https://github.com/rubyruins/)](https://www.github.com/rubyruins/) [![Wattpad Badge](https://img.shields.io/badge/-wattpad-orange?style=for-the-badge&logo=wattpad&logoColor=white&link=https://www.wattpad.com/user/rubyruins)](https://www.wattpad.com/user/rubyruins)')
 st.sidebar.title('Pick a story.')
 story = st.sidebar.selectbox('Story', ['Crown of Glass', 'Queen of Death'])
@@ -75,7 +74,7 @@ load_random(data)
 
 st.header("Let's see how the readers feel about particular characters.")
 st.subheader("Get started by picking a character from the story. ")
-st.markdown("💡 Pro tip: Check out the story to know why people love / hate these characters so much!")
+st.markdown("💡 Pro tip: Switch between different stories in the sidebar!")
 person = st.selectbox('Select', names)
 
 temp = data[data['Text'].str.contains(person.lower())]
