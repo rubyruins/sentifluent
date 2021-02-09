@@ -46,7 +46,7 @@ It uses Selenium and BeautifulSoup for scraping comments + Pandas and NLTK for d
 
 ## Deployment:
 
-The live project is deployed on https://sentifluent.herokuapp.com/. 
+The live project is deployed on https://share.streamlit.io/rubyruins/sentifluent/sentiment.py. 
 
 ---
 
