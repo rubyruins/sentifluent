@@ -12,7 +12,7 @@ sentifluent 📉📊
 
 A dashboard for viewing character targeted sentiment analysis and story stats.
 
-It uses Selenium and BeautifulSoup for scraping comments + Pandas and NLTK for data preprocessing and sentiment analysis +  Streamlit and Plotly Express for the dashboard and visulization. You can find the deployed website [here!](https://sentifluent.herokuapp.com/) 
+It uses Selenium and BeautifulSoup for scraping comments + Pandas and NLTK for data preprocessing and sentiment analysis +  Streamlit and Plotly Express for the dashboard and visulization. You can find the deployed website [here!](https://share.streamlit.io/rubyruins/sentifluent/sentiment.py) 
 
 ---
 
